@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Incident Management Prompts</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #38bdf8, #22d3ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: #94a3b8;
+        }
+        
+        .section {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            backdrop-filter: blur(5px);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .section h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #38bdf8;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        
+        .subsection {
+            margin-bottom: 2rem;
+        }
+        
+        .subsection h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #22d3ee;
+            margin-bottom: 1rem;
+            border-left: 3px solid #22d3ee;
+            padding-left: 1rem;
+        }
+        
+        .prompt-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            position: relative;
+            overflow-x: auto;
+        }
+        
+        .prompt-box::before {
+            content: '💡 Prompt';
+            position: absolute;
+            top: -10px;
+            left: 1rem;
+            background: linear-gradient(135deg, #38bdf8, #22d3ee);
+            color: #0f172a;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .context-box {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .context-box::before {
+            content: '📋 Context Setup';
+            color: #22c55e;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #38bdf8, #22d3ee);
+            color: #0f172a;
+            border-color: transparent;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .card:hover {
+            border-color: rgba(56, 189, 248, 0.3);
+            box-shadow: 0 8px 25px rgba(56, 189, 248, 0.1);
+        }
+        
+        .card h4 {
+            color: #38bdf8;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .section {
+                padding: 1.5rem;
+            }
+            
+            .tabs {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>LLM Incident Management Prompts</h1>
+            <p>Copy-paste examples for turning incidents into growth opportunities</p>
+        </div>
+
+        <div class="section">
+            <h2>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                Post-Incident Analysis
+            </h2>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('process')">Process & Tooling</div>
+                <div class="tab" onclick="showTab('team')">Team Dynamics</div>
+                <div class="tab" onclick="showTab('strategic')">Strategic Learning</div>
+                <div class="tab" onclick="showTab('resilience')">Future Resilience</div>
+            </div>
+
+            <div class="context-box">
+                Always start with: "Here's our complete incident timeline with decisions, constraints, and outcomes: [paste your documentation]. Now help me identify improvement opportunities..."
+            </div>
+
+            <div id="process" class="tab-content active">
+                <div class="grid">
+                    <div class="card">
+                        <h4>Monitoring Gaps</h4>
+                        <div class="prompt-box">What monitoring gaps does this timeline reveal? Specifically analyze: 1) What symptoms we detected vs. what we should have caught earlier, 2) Which metrics would have given us 10+ minutes more response time, 3) What alerts fired vs. what should have fired first</div>
+                    </div>
+                    <div class="card">
+                        <h4>Automation Opportunities</h4>
+                        <div class="prompt-box">Where could automation have reduced our response time by at least 30%? Focus on: manual steps that took >5 minutes, repetitive commands we ran multiple times, and decisions that followed clear if/then logic</div>
+                    </div>
+                    <div class="card">
+                        <h4>Early Warning Analysis</h4>
+                        <div class="prompt-box">What early warning signals did we miss in the 2 hours before this incident? Look for: gradual degradations we dismissed, error rate increases we considered "normal", and user complaints that hinted at the coming problem</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="team" class="tab-content">
+                <div class="grid">
+                    <div class="card">
+                        <h4>Communication Bottlenecks</h4>
+                        <div class="prompt-box">Analyze our communication patterns during this incident. Where did information bottleneck? Map out: who had critical info but didn't share it immediately, which channels slowed us down vs. helped, and what communication would have cut our resolution time by 25%</div>
+                    </div>
+                    <div class="card">
+                        <h4>Stress Response Patterns</h4>
+                        <div class="prompt-box">What skills gaps became apparent during high-stress moments? Identify: technical knowledge that was missing when we needed it most, decision-making patterns that worked vs. failed under pressure, and which team members naturally stepped up vs. struggled</div>
+                    </div>
+                    <div class="card">
+                        <h4>Knowledge Distribution</h4>
+                        <div class="prompt-box">Where did we have dangerous single points of failure in team knowledge? Highlight: critical information only one person knew, systems only specific people could debug, and what would have happened if key people were unavailable</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="strategic" class="tab-content">
+                <div class="grid">
+                    <div class="card">
+                        <h4>Pre-mortem Analysis</h4>
+                        <div class="prompt-box">What would a 'pre-mortem' exercise have caught about this incident 3 months ago? Identify: warning signs that were visible in our system design, architectural decisions that made this failure likely, and process gaps that made recovery harder than necessary</div>
+                    </div>
+                    <div class="card">
+                        <h4>Fail Fast Opportunities</h4>
+                        <div class="prompt-box">How could we have failed faster and recovered sooner? Focus on: points where we spent too long on approaches that wouldn't work, decisions we should have made in the first 15 minutes, and what would have helped us pivot quicker to the actual solution</div>
+                    </div>
+                    <div class="card">
+                        <h4>Assumption Testing</h4>
+                        <div class="prompt-box">What assumptions about our system proved incorrect during this incident? List: things we believed "could never happen", system behaviors we didn't expect, and dependencies we didn't know existed until they broke</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resilience" class="tab-content">
+                <div class="grid">
+                    <div class="card">
+                        <h4>Chaos Engineering Design</h4>
+                        <div class="prompt-box">Design a 'chaos engineering' experiment based on this incident that we can run safely in our staging environment. Include: the specific failure mode to simulate, success criteria for our response, and what we should observe to validate our fixes actually work</div>
+                    </div>
+                    <div class="card">
+                        <h4>Scale Testing</h4>
+                        <div class="prompt-box">What would our response look like if this same incident happened at 3x our current scale? Analyze: which parts of our response would break first, what manual processes wouldn't scale, and what infrastructure changes we need to handle future growth</div>
+                    </div>
+                    <div class="card">
+                        <h4>Scenario Planning</h4>
+                        <div class="prompt-box">Generate 3 related but different failure scenarios based on the root cause of this incident. For each scenario: estimate probability in next 6 months, predict impact severity, and suggest one preventive measure we should implement now</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Pre-Mortem Scenarios
+            </h2>
+            
+            <div class="subsection">
+                <h3>Setup Context</h3>
+                <div class="context-box">
+                    Before running pre-mortems, provide: Architecture overview, deployment process, team structure, known technical debt, recent changes, dependencies, and historical incident patterns.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3>Failure Assumption Framework</h3>
+                <div class="prompt-box">
+Imagine it's 6 months from now. Our [specific system/feature/release] has just caused a major outage that took 4 hours to resolve and affected 80% of our users. 
+
+Working backwards from this failure:
+1. What are the 5 most likely technical root causes?
+2. What human errors or process breakdowns led to this scenario?
+3. Which of our current 'minor issues' cascaded into this major failure?
+4. What made this incident especially difficult to diagnose and resolve?
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>Cascade Analysis</h4>
+                    <div class="prompt-box">Walk me through hour-by-hour: how does a small database connection issue at 2pm become a complete service outage by 6pm? Include: which services fail first, how errors propagate, what monitoring alerts in sequence, and why our circuit breakers don't help</div>
+                </div>
+                <div class="card">
+                    <h4>Detection Failures</h4>
+                    <div class="prompt-box">In this failure scenario, why did our current monitoring completely miss the early warning signs? Analyze: which metrics stayed normal while the system degraded, what alerts we have vs. what we actually need, and why on-call didn't get paged until customer complaints started</div>
+                </div>
+                <div class="card">
+                    <h4>Response Complications</h4>
+                    <div class="prompt-box">What would make this incident response take 4+ hours instead of 30 minutes? Consider: misleading symptoms that point to wrong root cause, dependencies we don't understand, team members who aren't available, and tools that don't work under pressure</div>
+                </div>
+                <div class="card">
+                    <h4>Perfect Storm Scenario</h4>
+                    <div class="prompt-box">How could this failure happen during our worst possible timing - like Black Friday, during team vacation, or combined with a separate AWS outage? What makes recovery 10x harder, and what could we prepare now to handle the perfect storm?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0L19.2 12l-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                Advanced LLM Applications
+            </h2>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>Pattern Recognition</h4>
+                    <div class="prompt-box">Analyze these 12 incidents from the past 3 months [paste incident summaries]. What patterns emerge that we're missing? Look for: common root causes across different symptoms, timing patterns, and which "unrelated" incidents actually share underlying causes</div>
+                </div>
+                <div class="card">
+                    <h4>Cross-Team Learning</h4>
+                    <div class="prompt-box">Here are incident reports from our Frontend, Backend, and Data teams [paste reports]. What organizational failure modes repeat across different technical domains? What process changes in one team could prevent incidents in others?</div>
+                </div>
+                <div class="card">
+                    <h4>Documentation Gap Analysis</h4>
+                    <div class="prompt-box">Compare our runbooks [paste runbook links] with this actual incident response. Where does our documentation not match reality? What critical steps are missing, outdated, or wrong? Prioritize fixes by impact on response time</div>
+                </div>
+                <div class="card">
+                    <h4>Business Impact Modeling</h4>
+                    <div class="prompt-box">If our payment API goes down for 2 hours during peak shopping hours, model the cascading effects: immediate revenue loss, customer behavior changes, support ticket volume, social media impact, and long-term trust implications</div>
+                </div>
+                <div class="card">
+                    <h4>Blameless Culture Analysis</h4>
+                    <div class="prompt-box">Review these 5 incident retrospectives [paste retros]. Identify subtle blame patterns or defensive language. What process changes would reduce likelihood of human error? Where is "human error" actually a systems design problem?</div>
+                </div>
+                <div class="card">
+                    <h4>Skill Gap Identification</h4>
+                    <div class="prompt-box">Based on our incident response patterns over 6 months [paste summary], which team members naturally excel at incident response? What specific skills correlate with faster resolution? Where should we focus training efforts for maximum impact?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5 1.4-1.4 3.6 3.6 9.6-9.6z"/></svg>
+                Quick Reference: Documentation Checklist
+            </h2>
+            
+            <div class="subsection">
+                <h3>Capture During Incident</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                    <div class="context-box">
+                        <strong>Timeline</strong><br>
+                        • Every action with timestamps<br>
+                        • Decision points and rationale<br>
+                        • Who did what when
+                    </div>
+                    <div class="context-box">
+                        <strong>System State</strong><br>
+                        • Metrics at key moments<br>
+                        • Configuration changes<br>
+                        • Error logs and traces
+                    </div>
+                    <div class="context-box">
+                        <strong>Communication</strong><br>
+                        • Key Slack threads<br>
+                        • Stakeholder updates<br>
+                        • Customer impact reports
+                    </div>
+                    <div class="context-box">
+                        <strong>Context</strong><br>
+                        • Why we chose each approach<br>
+                        • Resource constraints<br>
+                        • Team stress levels
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 3rem; padding: 2rem; color: #64748b; font-size: 0.9rem;">
+        Made with ❤️ by <a href="https://doramram.com" target="_blank" style="color: #38bdf8; text-decoration: none; font-weight: 500; transition: color 0.2s ease;" onmouseover="this.style.color='#22d3ee'" onmouseout="this.style.color='#38bdf8'">Dor Amram</a>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Add copy functionality to prompt boxes
+        document.querySelectorAll('.prompt-box').forEach(box => {
+            box.addEventListener('click', () => {
+                navigator.clipboard.writeText(box.textContent).then(() => {
+                    const originalBg = box.style.background;
+                    box.style.background = 'rgba(34, 197, 94, 0.2)';
+                    setTimeout(() => {
+                        box.style.background = originalBg;
+                    }, 200);
+                });
+            });
+            
+            box.style.cursor = 'pointer';
+            box.title = 'Click to copy prompt';
+        });
+    </script>
+</body>
+</html>
